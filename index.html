@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulator Anuitas Edukatif - Kelompok 5</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace'],
+                    },
+                    colors: {
+                        bank: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#0284c7',
+                            700: '#0369a1',
+                            900: '#0c4a6e',
+                        },
+                        math: {
+                            500: '#8b5cf6',
+                            700: '#6d28d9',
+                        },
+                        school: {
+                            500: '#10b981',
+                            800: '#065f46',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .chalkboard {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
+            border: 8px solid #854d0e;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .bg-grid-pattern {
+            background-image: radial-gradient(rgba(2, 132, 199, 0.12) 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(3deg); }
+        }
+        .animate-float {
+            animation: float 5s ease-in-out infinite;
+        }
+        .animate-float-delayed {
+            animation: float 6s ease-in-out 2s infinite;
+        }
+        /* Custom Scrollbar for Table */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen bg-grid-pattern relative overflow-x-hidden">
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-900 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center space-x-3 pointer-events-none">
+        <i class="fa-solid me-2 text-emerald-400" id="toast-icon"></i>
+        <span id="toast-message" class="text-sm font-medium">Notifikasi</span>
+    </div>
+
+    <!-- Floating Background Decorative Elements -->
+    <div class="absolute top-12 left-5 opacity-10 text-6xl text-sky-600 pointer-events-none animate-float">
+        <i class="fa-solid fa-calculator"></i>
+    </div>
+    <div class="absolute top-40 right-10 opacity-10 text-7xl text-purple-600 pointer-events-none animate-float-delayed">
+        <i class="fa-solid fa-graduation-cap"></i>
+    </div>
+    <div class="absolute top-1/2 left-8 opacity-10 text-6xl text-emerald-600 pointer-events-none animate-float">
+        <i class="fa-solid fa-landmark"></i>
+    </div>
+    <div class="absolute bottom-20 right-12 opacity-10 text-7xl text-amber-600 pointer-events-none animate-float-delayed">
+        <i class="fa-solid fa-square-root-variable"></i>
+    </div>
+
+    <!-- Navigation Header -->
+    <header class="sticky top-0 z-40 bg-white/80 backdrop-filter backdrop-blur-lg border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 to-indigo-600 text-white flex items-center justify-center font-bold shadow-lg shadow-sky-500/30">
+                    <i class="fa-solid fa-percent text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-slate-900 text-lg leading-tight flex items-center gap-2">
+                        SmartAnuitas
+                        <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 border border-sky-200">Matematika Keuangan</span>
+                    </h1>
+                    <p class="text-xs text-slate-500">Media Pembelajaran & Simulasi Perbankan Interaktif</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-2">
+                <button onclick="copyGithubCode()" class="flex items-center space-x-2 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold shadow-md transition transform hover:-translate-y-0.5">
+                    <i class="fa-brands fa-github text-base"></i>
+                    <span class="hidden sm:inline">Salin Kode GitHub</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+        <!-- Hero Section & Info Kelompok -->
+        <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+            
+            <!-- Hero Banner & Title -->
+            <div class="lg:col-span-7 bg-gradient-to-br from-slate-900 via-sky-950 to-indigo-950 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden flex flex-col justify-between border border-slate-800">
+                <!-- Decorative Glow -->
+                <div class="absolute -right-10 -bottom-10 w-60 h-60 bg-sky-500/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="absolute top-0 right-0 p-8 opacity-10 text-white text-9xl font-mono select-none pointer-events-none">
+                    $\sum$
+                </div>
+
+                <div class="relative z-10">
+                    <div class="inline-flex items-center space-x-2 bg-sky-500/20 border border-sky-400/30 text-sky-300 px-3 py-1 rounded-full text-xs font-medium mb-4 backdrop-blur-sm">
+                        <i class="fa-solid fa-building-columns"></i>
+                        <span>Model Anuitas Perbankan & Sekolah</span>
+                    </div>
+                    <h2 class="text-2xl sm:text-4xl font-extrabold tracking-tight leading-tight">
+                        Kalkulator Simulasi Anuitas Pinjaman
+                    </h2>
+                    <p class="mt-3 text-slate-300 text-sm sm:text-base leading-relaxed max-w-xl">
+                        Aplikasi hitung cepat amortisasi hutang dengan rumus matematika keuangan. Dirancang interaktif untuk kebutuhan pembelajaran sekolah dan pemahaman konsep perbankan.
+                    </p>
+                </div>
+
+                <!-- Feature Icons Strip -->
+                <div class="mt-8 pt-6 border-t border-slate-800/80 grid grid-cols-3 gap-2 sm:gap-4 text-center relative z-10">
+                    <div class="bg-white/5 rounded-2xl p-3 border border-white/5">
+                        <i class="fa-solid fa-coins text-amber-400 text-lg mb-1 block"></i>
+                        <span class="text-xs text-slate-300 font-medium">Bunga Anuitas</span>
+                    </div>
+                    <div class="bg-white/5 rounded-2xl p-3 border border-white/5">
+                        <i class="fa-solid fa-square-root-variable text-purple-400 text-lg mb-1 block"></i>
+                        <span class="text-xs text-slate-300 font-medium">Presisi Rumus</span>
+                    </div>
+                    <div class="bg-white/5 rounded-2xl p-3 border border-white/5">
+                        <i class="fa-solid fa-chart-line text-emerald-400 text-lg mb-1 block"></i>
+                        <span class="text-xs text-slate-300 font-medium">Grafik Tren</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card Identitas Kelompok 5 -->
+            <div class="lg:col-span-5 bg-white rounded-3xl p-6 shadow-xl border border-slate-200/80 flex flex-col justify-between relative">
+                <div>
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-2xl bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-lg">
+                                5
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-slate-800 text-base">Kelompok 5</h3>
+                                <p class="text-xs text-slate-500">Tim Penyusun & Pengembang</p>
+                            </div>
+                        </div>
+                        <span class="bg-emerald-50 text-emerald-600 text-xs font-bold px-3 py-1 rounded-full border border-emerald-200">
+                            <i class="fa-solid fa-graduation-cap me-1"></i> Aktif
+                        </span>
+                    </div>
+
+                    <!-- List Anggota Kelompok -->
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Daftar Anggota Kelompok:</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                        <div class="flex items-center p-2.5 rounded-xl bg-slate-50 hover:bg-sky-50/60 border border-slate-100 transition">
+                            <span class="w-6 h-6 rounded-lg bg-sky-600 text-white font-mono text-xs flex items-center justify-center font-bold me-2.5 shrink-0">3</span>
+                            <span class="font-semibold text-slate-700 truncate">Amir Ahmad Munawar</span>
+                        </div>
+                        <div class="flex items-center p-2.5 rounded-xl bg-slate-50 hover:bg-sky-50/60 border border-slate-100 transition">
+                            <span class="w-6 h-6 rounded-lg bg-sky-600 text-white font-mono text-xs flex items-center justify-center font-bold me-2.5 shrink-0">10</span>
+                            <span class="font-semibold text-slate-700 truncate">Dude Atha Alhamdy</span>
+                        </div>
+                        <div class="flex items-center p-2.5 rounded-xl bg-slate-50 hover:bg-sky-50/60 border border-slate-100 transition">
+                            <span class="w-6 h-6 rounded-lg bg-sky-600 text-white font-mono text-xs flex items-center justify-center font-bold me-2.5 shrink-0">9</span>
+                            <span class="font-semibold text-slate-700 truncate">Disti Aisya Nurfadillah</span>
+                        </div>
+                        <div class="flex items-center p-2.5 rounded-xl bg-slate-50 hover:bg-sky-50/60 border border-slate-100 transition">
+                            <span class="w-6 h-6 rounded-lg bg-sky-600 text-white font-mono text-xs flex items-center justify-center font-bold me-2.5 shrink-0">14</span>
+                            <span class="font-semibold text-slate-700 truncate">Humaira Sucia Rahen</span>
+                        </div>
+                        <div class="flex items-center p-2.5 rounded-xl bg-slate-50 hover:bg-sky-50/60 border border-slate-100 transition">
+                            <span class="w-6 h-6 rounded-lg bg-sky-600 text-white font-mono text-xs flex items-center justify-center font-bold me-2.5 shrink-0">29</span>
+                            <span class="font-semibold text-slate-700 truncate">Rasika Az-zahra</span>
+                        </div>
+                        <div class="flex items-center p-2.5 rounded-xl bg-slate-50 hover:bg-sky-50/60 border border-slate-100 transition">
+                            <span class="w-6 h-6 rounded-lg bg-sky-600 text-white font-mono text-xs flex items-center justify-center font-bold me-2.5 shrink-0">30</span>
+                            <span class="font-semibold text-slate-700 truncate">Regan Raihan Nafis</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
+                    <span class="flex items-center gap-1"><i class="fa-solid fa-book-bookmark text-sky-500"></i> Tugas Matematika</span>
+                    <span class="font-mono">SMA / Sederajat</span>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Main Calculator Grid -->
+        <section class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+            <!-- Left Panel: Input & Settings Form -->
+            <div class="lg:col-span-5 space-y-6">
+                <div class="bg-white rounded-3xl p-6 shadow-xl border border-slate-200/80 space-y-5">
+                    
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <h3 class="font-extrabold text-slate-800 text-base flex items-center gap-2">
+                            <i class="fa-solid fa-sliders text-sky-600"></i> Parameter Pinjaman
+                        </h3>
+                        <span class="text-xs text-slate-400">Input Data Anuitas</span>
+                    </div>
+
+                    <!-- Form Inputs -->
+                    <form id="annuityForm" onsubmit="event.preventDefault(); calculateAnnuity();" class="space-y-4">
+                        
+                        <!-- Input Pinjaman Pokok (M) -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                                Pinjaman Pokok / Modal ($M$)
+                            </label>
+                            <div class="relative rounded-2xl shadow-sm">
+                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 font-bold text-sm">
+                                    Rp
+                                </div>
+                                <input type="number" id="principal" value="10000000" min="1000" step="1000" required
+                                    class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-sky-500 focus:bg-white transition"
+                                    placeholder="Contoh: 10.000.000">
+                            </div>
+                        </div>
+
+                        <!-- Input Suku Bunga (i) & Tipe Periode Bunga -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                                    Suku Bunga ($i$)
+                                </label>
+                                <div class="relative rounded-2xl shadow-sm">
+                                    <input type="number" id="interestRate" value="1.5" min="0.01" step="0.01" required
+                                        class="w-full pl-4 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-sky-500 focus:bg-white transition"
+                                        placeholder="1.5">
+                                    <div class="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-400 font-bold text-sm">
+                                        %
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                                    Tipe Bunga
+                                </label>
+                                <select id="rateType" class="w-full py-3 px-3 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-sky-500 focus:bg-white transition">
+                                    <option value="monthly" selected>Per Bulan</option>
+                                    <option value="yearly">Per Tahun</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Input Jangka Waktu / Tenor (n) -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                                    Jangka Waktu ($n$)
+                                </label>
+                                <input type="number" id="period" value="12" min="1" max="360" required
+                                    class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-sky-500 focus:bg-white transition"
+                                    placeholder="12">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                                    Satuan Tenor
+                                </label>
+                                <select id="periodUnit" class="w-full py-3 px-3 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-sky-500 focus:bg-white transition">
+                                    <option value="months" selected>Bulan</option>
+                                    <option value="years">Tahun</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="pt-2 grid grid-cols-3 gap-3">
+                            <button type="submit" 
+                                class="col-span-2 py-3.5 px-4 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white font-bold text-sm rounded-2xl shadow-lg shadow-sky-600/30 transition transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center space-x-2">
+                                <i class="fa-solid fa-calculator"></i>
+                                <span>Hitung Anuitas</span>
+                            </button>
+                            <button type="button" onclick="resetForm()"
+                                class="py-3.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-sm rounded-2xl transition flex items-center justify-center space-x-1">
+                                <i class="fa-solid fa-rotate-left"></i>
+                                <span>Reset</span>
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+
+                <!-- Educational Formula Blackboard Card -->
+                <div class="chalkboard rounded-3xl p-6 text-white relative overflow-hidden">
+                    <div class="flex items-center justify-between border-b border-slate-700 pb-3 mb-4">
+                        <div class="flex items-center space-x-2">
+                            <i class="fa-solid fa-chalkboard-user text-amber-400 text-lg"></i>
+                            <h4 class="font-bold text-sm tracking-wide text-amber-200">Papan Rumus Anuitas</h4>
+                        </div>
+                        <span class="text-[10px] font-mono bg-amber-400/20 text-amber-300 px-2 py-0.5 rounded-md border border-amber-400/30">
+                            Matematika Keuangan
+                        </span>
+                    </div>
+
+                    <div class="space-y-3 font-mono text-xs leading-relaxed text-slate-200">
+                        <p class="text-center bg-slate-900/60 p-3 rounded-xl border border-slate-700 text-amber-300 font-bold text-sm sm:text-base">
+                            $$A = M \cdot \frac{i(1+i)^n}{(1+i)^n - 1}$$
+                        </p>
+                        <div class="grid grid-cols-2 gap-2 text-[11px] pt-1">
+                            <div><span class="text-amber-300 font-bold">$A$</span> : Angsuran Anuitas</div>
+                            <div><span class="text-amber-300 font-bold">$M$</span> : Modal / Pinjaman Pokok</div>
+                            <div><span class="text-amber-300 font-bold">$i$</span> : Suku Bunga (%)</div>
+                            <div><span class="text-amber-300 font-bold">$n$</span> : Jumlah Periode</div>
+                        </div>
+                        <div class="pt-2 border-t border-slate-800 text-[11px] text-slate-400">
+                            <p><strong class="text-slate-300">Hubungan Angsuran & Bunga:</strong></p>
+                            <p>$A = a_k + b_k$ (Anuitas = Angsuran Pokok + Bunga Periode ke-$k$)</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right Panel: Results & Amortization Table -->
+            <div class="lg:col-span-7 space-y-6">
+
+                <!-- Summary Dashboard Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    
+                    <!-- Card Nilai Anuitas -->
+                    <div class="bg-white rounded-3xl p-5 shadow-lg border border-slate-200/80 flex flex-col justify-between relative overflow-hidden group hover:border-sky-300 transition">
+                        <div class="w-10 h-10 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center font-bold mb-3">
+                            <i class="fa-solid fa-wallet"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Anuitas ($A$ / Periode)</p>
+                            <h4 id="resAnnuity" class="text-lg sm:text-xl font-extrabold text-slate-900 mt-1">Rp 0</h4>
+                        </div>
+                        <div class="mt-2 text-[10px] text-sky-600 font-medium">Cicilan tetap per bulan</div>
+                    </div>
+
+                    <!-- Card Total Bunga -->
+                    <div class="bg-white rounded-3xl p-5 shadow-lg border border-slate-200/80 flex flex-col justify-between relative overflow-hidden group hover:border-purple-300 transition">
+                        <div class="w-10 h-10 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold mb-3">
+                            <i class="fa-solid fa-percent"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Bunga ($b$)</p>
+                            <h4 id="resTotalInterest" class="text-lg sm:text-xl font-extrabold text-purple-700 mt-1">Rp 0</h4>
+                        </div>
+                        <div class="mt-2 text-[10px] text-purple-600 font-medium">Biaya sewa modal</div>
+                    </div>
+
+                    <!-- Card Total Pembayaran -->
+                    <div class="bg-white rounded-3xl p-5 shadow-lg border border-slate-200/80 flex flex-col justify-between relative overflow-hidden group hover:border-emerald-300 transition">
+                        <div class="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold mb-3">
+                            <i class="fa-solid fa-file-invoice-dollar"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Pembayaran</p>
+                            <h4 id="resTotalPayment" class="text-lg sm:text-xl font-extrabold text-emerald-700 mt-1">Rp 0</h4>
+                        </div>
+                        <div class="mt-2 text-[10px] text-emerald-600 font-medium">Pokok + Total Bunga</div>
+                    </div>
+
+                </div>
+
+                <!-- Visual Chart Section -->
+                <div class="bg-white rounded-3xl p-6 shadow-xl border border-slate-200/80">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-extrabold text-slate-800 text-base flex items-center gap-2">
+                            <i class="fa-solid fa-chart-pie text-indigo-600"></i> Komposisi Angsuran Pokok vs Bunga
+                        </h3>
+                        <span class="text-xs text-slate-400">Grafik Perubahan Per Periode</span>
+                    </div>
+                    <div class="h-56 relative">
+                        <canvas id="annuityChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Amortization Schedule Table Card -->
+                <div class="bg-white rounded-3xl shadow-xl border border-slate-200/80 overflow-hidden">
+                    <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                        <div>
+                            <h3 class="font-extrabold text-slate-800 text-base flex items-center gap-2">
+                                <i class="fa-solid fa-table-list text-sky-600"></i> Tabel Jadwal Amortisasi
+                            </h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Rincian penurunan sisa pinjaman setiap periode</p>
+                        </div>
+                        <button onclick="exportTableToCSV()" class="text-xs font-bold px-3 py-1.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 shadow-sm transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-file-csv text-emerald-600"></i> Ekspor CSV
+                        </button>
+                    </div>
+
+                    <!-- Scrollable Table -->
+                    <div class="overflow-x-auto max-h-80">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="sticky top-0 bg-slate-100/90 backdrop-blur-md text-slate-600 text-[11px] font-bold uppercase tracking-wider z-10">
+                                <tr>
+                                    <th class="py-3 px-4 text-center border-b border-slate-200">Ke-</th>
+                                    <th class="py-3 px-4 border-b border-slate-200">Sisa Awal ($M_k$)</th>
+                                    <th class="py-3 px-4 border-b border-slate-200">Anuitas ($A$)</th>
+                                    <th class="py-3 px-4 border-b border-slate-200">Bunga ($b_k$)</th>
+                                    <th class="py-3 px-4 border-b border-slate-200">Pokok ($a_k$)</th>
+                                    <th class="py-3 px-4 border-b border-slate-200">Sisa Akhir</th>
+                                </tr>
+                            </thead>
+                            <tbody id="amortizationBody" class="text-xs divide-y divide-slate-100 font-mono">
+                                <!-- Dynamic rows rendered via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 mt-16 py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+            <div class="flex items-center space-x-2">
+                <i class="fa-solid fa-graduation-cap text-sky-600 text-base"></i>
+                <span class="font-semibold text-slate-700">Dibuat oleh Kelompok 5</span> &bull; Projek Edukasi Matematika Keuangan
+            </div>
+            <div>
+                &copy; 2026 SmartAnuitas Calculator. Format siap Rilis untuk GitHub.
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript Engine -->
+    <script>
+        let myChart = null;
+
+        // Utility: Format Number to Indonesian Rupiah
+        function formatRupiah(number) {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                maximumFractionDigits: 0
+            }).format(number);
+        }
+
+        // Show Custom Toast Notification
+        function showToast(message, iconClass = 'fa-check-circle') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-message');
+            const toastIcon = document.getElementById('toast-icon');
+
+            toastMsg.textContent = message;
+            toastIcon.className = `fa-solid ${iconClass} text-emerald-400`;
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // Calculation Function
+        function calculateAnnuity() {
+            // Get Inputs
+            let principal = parseFloat(document.getElementById('principal').value);
+            let interestRate = parseFloat(document.getElementById('interestRate').value);
+            let rateType = document.getElementById('rateType').value;
+            let period = parseInt(document.getElementById('period').value);
+            let periodUnit = document.getElementById('periodUnit').value;
+
+            if (isNaN(principal) || isNaN(interestRate) || isNaN(period) || principal <= 0 || period <= 0) {
+                showToast('Mohon masukkan data input yang valid.', 'fa-triangle-exclamation');
+                return;
+            }
+
+            // Standardize Period to Total Months
+            let totalPeriods = (periodUnit === 'years') ? period * 12 : period;
+
+            // Standardize Interest Rate per Month
+            let i = (rateType === 'yearly') ? (interestRate / 100) / 12 : (interestRate / 100);
+
+            // Annuity Formula: A = P * [i(1+i)^n] / [(1+i)^n - 1]
+            let annuity = principal * (i * Math.pow(1 + i, totalPeriods)) / (Math.pow(1 + i, totalPeriods) - 1);
+
+            if (!isFinite(annuity) || isNaN(annuity)) {
+                showToast('Gagal menghitung anuitas. Periksa suku bunga.', 'fa-circle-xmark');
+                return;
+            }
+
+            let totalPayment = annuity * totalPeriods;
+            let totalInterest = totalPayment - principal;
+
+            // Update Summary Dashboard Cards
+            document.getElementById('resAnnuity').innerText = formatRupiah(annuity);
+            document.getElementById('resTotalInterest').innerText = formatRupiah(totalInterest);
+            document.getElementById('resTotalPayment').innerText = formatRupiah(totalPayment);
+
+            // Generate Amortization Schedule Data
+            let currentBalance = principal;
+            let scheduleData = [];
+            let chartLabels = [];
+            let chartPrincipalData = [];
+            let chartInterestData = [];
+
+            let tbody = document.getElementById('amortizationBody');
+            tbody.innerHTML = '';
+
+            for (let k = 1; k <= totalPeriods; k++) {
+                let interestPayment = currentBalance * i;
+                let principalPayment = annuity - interestPayment;
+                let endingBalance = currentBalance - principalPayment;
+
+                if (endingBalance < 0 || k === totalPeriods) {
+                    endingBalance = 0;
+                }
+
+                // Push data for chart
+                chartLabels.push(`Bln ${k}`);
+                chartPrincipalData.push(Math.round(principalPayment));
+                chartInterestData.push(Math.round(interestPayment));
+
+                // Append Row to Table
+                let tr = document.createElement('tr');
+                tr.className = "hover:bg-sky-50/50 transition";
+                tr.innerHTML = `
+                    <td class="py-2.5 px-4 text-center font-bold text-slate-500">${k}</td>
+                    <td class="py-2.5 px-4 text-slate-700">${formatRupiah(currentBalance)}</td>
+                    <td class="py-2.5 px-4 font-bold text-slate-900">${formatRupiah(annuity)}</td>
+                    <td class="py-2.5 px-4 text-purple-600 font-medium">${formatRupiah(interestPayment)}</td>
+                    <td class="py-2.5 px-4 text-emerald-600 font-medium">${formatRupiah(principalPayment)}</td>
+                    <td class="py-2.5 px-4 text-slate-700">${formatRupiah(endingBalance)}</td>
+                `;
+                tbody.appendChild(tr);
+
+                currentBalance = endingBalance;
+            }
+
+            // Render/Update Visual Chart
+            renderChart(chartLabels, chartPrincipalData, chartInterestData);
+        }
+
+        // Render Chart.js
+        function renderChart(labels, principalData, interestData) {
+            const ctx = document.getElementById('annuityChart').getContext('2d');
+
+            if (myChart) {
+                myChart.destroy();
+            }
+
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Angsuran Pokok (Rp)',
+                            data: principalData,
+                            backgroundColor: '#10b981',
+                            borderRadius: 6,
+                        },
+                        {
+                            label: 'Bunga (Rp)',
+                            data: interestData,
+                            backgroundColor: '#8b5cf6',
+                            borderRadius: 6,
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            stacked: true,
+                            grid: { display: false }
+                        },
+                        y: {
+                            stacked: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return 'Rp ' + (value / 1000).toLocaleString() + 'k';
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: { family: 'Plus Jakarta Sans', size: 12 }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + formatRupiah(context.raw);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Reset Form
+        function resetForm() {
+            document.getElementById('principal').value = '10000000';
+            document.getElementById('interestRate').value = '1.5';
+            document.getElementById('rateType').value = 'monthly';
+            document.getElementById('period').value = '12';
+            document.getElementById('periodUnit').value = 'months';
+            calculateAnnuity();
+            showToast('Form telah direset ke nilai awal.', 'fa-rotate-left');
+        }
+
+        // Export Table to CSV Format
+        function exportTableToCSV() {
+            let table = document.getElementById("amortizationBody");
+            let rows = table.querySelectorAll("tr");
+            let csv = ["Periode,Sisa Awal,Anuitas,Bunga,Pokok,Sisa Akhir"];
+
+            rows.forEach(row => {
+                let cols = row.querySelectorAll("td");
+                let rowData = [];
+                cols.forEach(col => {
+                    // Clean formatting for CSV
+                    let text = col.innerText.replace(/Rp\s?/g, '').replace(/\./g, '').trim();
+                    rowData.push(text);
+                });
+                csv.push(rowData.join(","));
+            });
+
+            let csvFile = new Blob([csv.join("\n")], { type: "text/csv" });
+            let downloadLink = document.createElement("a");
+            downloadLink.download = "Jadwal_Amortisasi_Anuitas_Kelompok5.csv";
+            downloadLink.href = window.URL.createObjectURL(csvFile);
+            downloadLink.style.display = "none";
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+
+            showToast('Tabel berhasil diekspor ke CSV!', 'fa-file-arrow-down');
+        }
+
+        // Copy HTML Code for GitHub Upload
+        function copyGithubCode() {
+            let docCode = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+            
+            // Temporary textarea method for iframe environment compatibility
+            let tempTextArea = document.createElement("textarea");
+            tempTextArea.value = docCode;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            
+            try {
+                document.execCommand('copy');
+                showToast('Kode HTML berhasil disalin! Siap dipaste ke GitHub (index.html).', 'fa-copy');
+            } catch (err) {
+                showToast('Gagal menyalin kode secara otomatis.', 'fa-triangle-exclamation');
+            }
+            document.body.removeChild(tempTextArea);
+        }
+
+        // Initialize Calculation on Load
+        window.onload = function() {
+            calculateAnnuity();
+        };
+    </script>
+</body>
+</html>
